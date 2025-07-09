@@ -1,4 +1,5 @@
 import librosa
+import numpy as np
 # import webrtcvad
 
 """
@@ -51,37 +52,72 @@ def rms_energy_mean(audio, sr):
     rms = librosa.feature.rms(y = audio)[0]
     return rms.mean()
 
-def ponderar_calidad(zcr: float, spectral_flatness: float, rms_energy: float) -> float:
+def ponderar_calidad(zcr: float, spectral_flatness: float, rms_energy: float, precision: int = 4) -> float:
     """
     Pondera los valores de las métricas y proporciona un valor acumulado (0 a 3).
     """
     metrica = 0
 
     zcr_bueno = calidad_audio_referencia["ZCR"]["rango_bueno"]
-    zcr_malo = calidad_audio_referencia["ZCR"]["rango_malo"]
+    # zcr_malo = calidad_audio_referencia["ZCR"]["rango_malo"]
 
-    if zcr_bueno[0] <= zcr <= zcr_bueno[1]:
-        metrica += 1
-    elif zcr >= zcr_malo[0]:
-        metrica += 0.5
+    metrica += evaluar_lineal_con_offset(zcr, zcr_bueno[0], zcr_bueno[1], .1, 1)
+    print(f"metrica: {metrica}")
+    # if zcr >= zcr_malo[0]:
+    #     metrica += 0.0
 
     flat_bueno = calidad_audio_referencia["Spectral_Flatness"]["rango_bueno"]
     flat_malo = calidad_audio_referencia["Spectral_Flatness"]["rango_malo"]
 
-    if flat_bueno[0] <= spectral_flatness <= flat_bueno[1]:
-        metrica += 1
-    elif spectral_flatness >= flat_malo[0]:
-        metrica += 0.5
+    metrica += evaluar_lineal_con_offset(spectral_flatness, flat_bueno[0], flat_bueno[1], .1, 1)
+    print(f"metrica: {metrica}")
+    # if spectral_flatness >= flat_malo[0]:
+    #     metrica += 0.0
 
     rms_bueno = calidad_audio_referencia["RMS_Energy"]["rango_bueno"]
     rms_malo = calidad_audio_referencia["RMS_Energy"]["rango_malo"]
 
-    if rms_bueno[0] <= rms_energy <= rms_bueno[1]:
-        metrica += 1
-    elif any(lower <= rms_energy <= upper for (lower, upper) in rms_malo):
-        metrica += 0.5
+    metrica += evaluar_lineal_con_offset(rms_energy, rms_bueno[0], rms_bueno[1], .1, 1)
+    print(f"metrica: {metrica}")
+    # if any(lower <= rms_energy <= upper for (lower, upper) in rms_malo):
+    #     metrica += 0.5
 
-    return round(metrica, 2)
+    return round(metrica, precision)
+
+def evaluar_lineal(valor: float, minimo: float, maximo: float):
+    """
+    Evalua linealmente tomando como 0 el valor minimo y 1 el valor maximo
+    """
+    return (valor - minimo) / (maximo - valor)
+
+def evaluar_lineal_con_offset(valor: float, minimo: float, maximo: float, score_min: float = 0.1, score_max: float = 1.0):
+    if valor == minimo:
+        return score_min
+    if valor == maximo:
+        return score_max
+    if valor < minimo or valor > maximo:
+        return 0
+    # Escalado lineal entre score_min y score_max
+    score = score_min + (valor - minimo) / (maximo - minimo) * (score_max - score_min)
+    return score
+
+def evaluar_central(valor: float, minimo: float, maximo: float):
+    """
+    Evalua similar a una campana tomando como 1 el valor central y reduciendo a cero hacia los extremos
+    """
+    centro = (minimo + maximo) / 2
+    rango = (maximo - minimo) / 2
+    score = 1 - abs(valor - centro) / rango
+    return max(0, score)
+
+def evaluar_gauss(valor: float, minimo: float, maximo: float):
+    """
+    Evalua similar a una campana de gauss tomando como 1 el valor central y reduciendo a cero hacia los extremos
+    cuendo llega a un sigma (0.02, izquierda y 0.08, derecha) el valor sera 0
+    """
+    centro = (minimo + maximo) / 2
+    sigma = (maximo - minimo) / 4
+    return np.exp(-((valor - centro) ** 2) / (2 * sigma ** 2))
 
 """
 def vad_voice_ratio(audio, sr, frame_duration_ms=30):
@@ -114,7 +150,8 @@ def vad_voice_ratio(audio, sr, frame_duration_ms=30):
 """
 
 
-
 if __name__ == "__main__":
     ponderacion = ponderar_calidad(zcr = 0.1, spectral_flatness = 0.1, rms_energy = 0.01)
     print(ponderacion)
+
+    print(f"evaluar_lineal_con_offset: {evaluar_lineal_con_offset(0.6, 0.2, 0.8, 0, 1)}")
