@@ -145,3 +145,8 @@ end
 
 if __name__ == '__main__':
      print("heuristica")
+
+     estado_inicial = {
+         "low_cut"
+     }
+

@@ -48,6 +48,7 @@ def spectral_flatness_mean(audio, sr):
 def rms_energy_mean(audio, sr):
     """
     Mide cuan fuerte es la señal en promedio, detecta problemas de volumen o distorsion
+    :return (int) numero de 0 a 3
     """
     rms = librosa.feature.rms(y = audio)[0]
     return rms.mean()
