@@ -10,15 +10,25 @@ from utils.Graficar import graficar_historial, graficar_metricas
 from utils.guardar_contenido_json import guardar_contenido_json
 
 
+
+
 def ascenso_montania_limpieza_audio():
     print("Ascenso montania")
     # Estado inicial
+    estado = {
+        "low_cut": 113,
+        "high_cut": 7912,
+        "filtro_order": 7,
+        "prop_de_noise": 0.077
+    }
+    """
     estado = {
         "low_cut": 80,
         "high_cut": 8000,
         "filtro_order": 4,
         "prop_de_noise": 0.1
     }
+    """
 
     audio_original = Audio(".\\..\\audio\\audio_test.wav")
     audio_original.leer_audio_librosa(44100, True)
@@ -30,11 +40,14 @@ def ascenso_montania_limpieza_audio():
     mejor_audio = None
     mejor_estado: dict = {}
     iteraciones_sin_mejora = 0
-    max_iteraciones = 1
-    max_iteraciones_sin_mejora = 1
+    max_iteraciones = 1000
+    max_iteraciones_sin_mejora = 20
     historial = []
 
+
+
     for i in range(max_iteraciones):
+        print(f"Iteracion: {i}")
         nuevo_estado = {
             "low_cut": max(20, min(estado["low_cut"] + np.random.randint(-20, 20), 1000)),
             "high_cut": max(estado["low_cut"] + 1000, min(estado["high_cut"] + np.random.randint(-200, 200), 16000)),
@@ -44,6 +57,10 @@ def ascenso_montania_limpieza_audio():
 
         audio_filtrado = aplicar_filtro_pasabanda(audio=audio_original, low_cut=nuevo_estado["low_cut"], high_cut=nuevo_estado["high_cut"], orden=nuevo_estado["filtro_order"])
         audio_limpio = reducir_ruido(audio=audio_filtrado, sound_rate=audio_original.sound_rate, prop_decrease=nuevo_estado["prop_de_noise"])
+
+        if not np.all(np.isfinite(audio_limpio)):
+            print("⚠️ El audio contiene valores no finitos. Se limpiará.")
+            audio_limpio = np.nan_to_num(audio_limpio, nan=0.0, posinf=1.0, neginf=-1.0)
 
         # Evaluar
         zcr = zero_crosing_rate_mean(audio_limpio, audio_original.sound_rate)
@@ -60,6 +77,8 @@ def ascenso_montania_limpieza_audio():
             "ponderacion": puntuacion
         })
 
+        print(f"Ponderacion: {puntuacion}")
+
         if puntuacion > mejor_puntuaje:
             mejor_puntuaje = puntuacion
             mejor_audio = audio_limpio
@@ -70,6 +89,7 @@ def ascenso_montania_limpieza_audio():
             iteraciones_sin_mejora += 1
 
         if iteraciones_sin_mejora >= max_iteraciones_sin_mejora:
+            print(f"Iteraciones sin mejora superadas: {i}")
             break
 
     print("Mejor configuración encontrada:", mejor_estado)

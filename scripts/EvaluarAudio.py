@@ -63,7 +63,7 @@ def ponderar_calidad(zcr: float, spectral_flatness: float, rms_energy: float, pr
     # zcr_malo = calidad_audio_referencia["ZCR"]["rango_malo"]
 
     metrica += evaluar_lineal_con_offset(zcr, zcr_bueno[0], zcr_bueno[1], .1, 1)
-    print(f"metrica: {metrica}")
+    # print(f"metrica: {metrica}")
     # if zcr >= zcr_malo[0]:
     #     metrica += 0.0
 
@@ -71,7 +71,7 @@ def ponderar_calidad(zcr: float, spectral_flatness: float, rms_energy: float, pr
     flat_malo = calidad_audio_referencia["Spectral_Flatness"]["rango_malo"]
 
     metrica += evaluar_lineal_con_offset(spectral_flatness, flat_bueno[0], flat_bueno[1], .1, 1)
-    print(f"metrica: {metrica}")
+    # print(f"metrica: {metrica}")
     # if spectral_flatness >= flat_malo[0]:
     #     metrica += 0.0
 
@@ -79,7 +79,7 @@ def ponderar_calidad(zcr: float, spectral_flatness: float, rms_energy: float, pr
     rms_malo = calidad_audio_referencia["RMS_Energy"]["rango_malo"]
 
     metrica += evaluar_lineal_con_offset(rms_energy, rms_bueno[0], rms_bueno[1], .1, 1)
-    print(f"metrica: {metrica}")
+    # print(f"metrica: {metrica}")
     # if any(lower <= rms_energy <= upper for (lower, upper) in rms_malo):
     #     metrica += 0.5
 
