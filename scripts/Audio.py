@@ -9,11 +9,12 @@ import soundfile as sf
 
 
 class Audio:
-    def __init__(self, path):
-        self._ruta_archivo = path
+    def __init__(self, path: str):
+        self._ruta_archivo: str = path
+        self._nombre_archivo: str = ""
         self._audio = None
-        self._lib_lectura = None
-        self._rate = None
+        self._lib_lectura: str = ""
+        self._sound_rate: int = 0
 
     """
     def leer_audio_pydub(self):
@@ -26,6 +27,7 @@ class Audio:
             self._audio = audio
             self._rate = audio.frame_rate
             self._lib_lectura = "pydub"
+            self._nombre_archivo = self.obtener_nombre_archivo()
             \"""
             print(f"\n--- Información del archivo: {os.path.basename(self._ruta_archivo)} (con pydub) ---")
             print(f"Formato: {audio.export(format='wav').name.split('.')[-1].upper()} (estimado al exportar)")
@@ -58,8 +60,9 @@ class Audio:
                 # print(f"Shape de los datos de audio (frames, canales): {data.shape}")
                 # return data, f.samplerate
                 self._audio = data
-                self._rate = f.samplerate
+                self._sound_rate = f.samplerate
                 self._lib_lectura = "soundfile"
+                self._nombre_archivo = self.obtener_nombre_archivo()
                 return data, f.samplerate
         except Exception as e:
             raise Exception(f"Error al leer el archivo con soundfile: {e}")
@@ -72,10 +75,18 @@ class Audio:
         try:
             audio, sr = librosa.load(self._ruta_archivo, sr=sample_rate, mono=mono)
             self._audio = audio
-            self._rate = sr
+            self._sound_rate = sr
+            self._lib_lectura = "librosa"
+            self._nombre_archivo = self.obtener_nombre_archivo()
             return audio, sr
         except Exception as e:
             raise Exception(f"Error al leer el archivo con librosa: {e}")
+
+    def guardar_audio(self, ruta: str):
+        sf.write(ruta, self.audio, self.sound_rate)
+
+    def obtener_nombre_archivo(self):
+        return os.path.basename(self.ruta_archivo)
 
     def convertir_canal_mono(self):
         if self._audio.ndim > 1:
@@ -100,16 +111,34 @@ class Audio:
         self._ruta_archivo = ruta_archivo
 
     @property
+    def nombre_archivo(self):
+        return self._nombre_archivo
+
+    @nombre_archivo.setter
+    def nombre_archivo(self, nombre_archivo: str):
+        self._nombre_archivo = nombre_archivo
+
+    @property
     def audio(self):
         return self._audio
+
+    @audio.setter
+    def audio(self, audio, sound_rate):
+        self.audio = audio
+        self.sound_rate = sound_rate
 
     @property
     def lib_lectura(self):
         return self._lib_lectura
 
     @property
-    def rate(self):
-        return self._rate
+    def sound_rate(self):
+        return self._sound_rate
+
+    @sound_rate.setter
+    def sound_rate(self, value):
+        self._sound_rate = value
+
 
 if __name__ == '__main__':
     print("main")

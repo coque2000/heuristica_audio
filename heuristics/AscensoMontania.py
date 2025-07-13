@@ -1,5 +1,86 @@
-def ascenso_montania():
-    print("ascenso")
+from datetime import datetime
+
+import numpy as np
+
+from scripts.Audio import Audio
+from scripts.EvaluarAudio import zero_crosing_rate_mean, spectral_flatness_mean, rms_energy_mean, ponderar_calidad
+from scripts.LimpiezaAudio import aplicar_filtro_pasabanda, reducir_ruido
+from utils.FormatoFechaHora import FormatoFechaHora
+from utils.Graficar import graficar_historial, graficar_metricas
+from utils.guardar_contenido_json import guardar_contenido_json
+
+
+def ascenso_montania_limpieza_audio():
+    print("Ascenso montania")
+    # Estado inicial
+    estado = {
+        "low_cut": 80,
+        "high_cut": 8000,
+        "filtro_order": 4,
+        "prop_de_noise": 0.1
+    }
+
+    audio_original = Audio(".\\..\\audio\\audio_test.wav")
+    audio_original.leer_audio_librosa(44100, True)
+    print(f"El audio fue leido")
+    print(f"Soundrate: {audio_original.sound_rate}")
+    audio_original.normalizar_audio()
+
+    mejor_puntuaje = -1
+    mejor_audio = None
+    mejor_estado: dict = {}
+    iteraciones_sin_mejora = 0
+    max_iteraciones = 1
+    max_iteraciones_sin_mejora = 1
+    historial = []
+
+    for i in range(max_iteraciones):
+        nuevo_estado = {
+            "low_cut": max(20, min(estado["low_cut"] + np.random.randint(-20, 20), 1000)),
+            "high_cut": max(estado["low_cut"] + 1000, min(estado["high_cut"] + np.random.randint(-200, 200), 16000)),
+            "filtro_order": min(max(1, estado["filtro_order"] + np.random.choice([-1, 0, 1])), 8),
+            "prop_de_noise": round(min(max(0.05, estado["prop_de_noise"] + np.random.uniform(-0.02, 0.02)), 0.5), 3)
+        }
+
+        audio_filtrado = aplicar_filtro_pasabanda(audio=audio_original, low_cut=nuevo_estado["low_cut"], high_cut=nuevo_estado["high_cut"], orden=nuevo_estado["filtro_order"])
+        audio_limpio = reducir_ruido(audio=audio_filtrado, sound_rate=audio_original.sound_rate, prop_decrease=nuevo_estado["prop_de_noise"])
+
+        # Evaluar
+        zcr = zero_crosing_rate_mean(audio_limpio, audio_original.sound_rate)
+        flatness = spectral_flatness_mean(audio_limpio, audio_original.sound_rate)
+        rms = rms_energy_mean(audio_limpio, audio_original.sound_rate)
+        puntuacion = ponderar_calidad(zcr=zcr, spectral_flatness=flatness, rms_energy=rms)
+
+        historial.append({
+            "iter": i,
+            "estado": nuevo_estado,
+            "zcr": zcr,
+            "flatness": flatness,
+            "rms": rms,
+            "ponderacion": puntuacion
+        })
+
+        if puntuacion > mejor_puntuaje:
+            mejor_puntuaje = puntuacion
+            mejor_audio = audio_limpio
+            mejor_estado = nuevo_estado.copy()
+            estado = nuevo_estado.copy()  # movernos a la nueva solución
+            iteraciones_sin_mejora = 0
+        else:
+            iteraciones_sin_mejora += 1
+
+        if iteraciones_sin_mejora >= max_iteraciones_sin_mejora:
+            break
+
+    print("Mejor configuración encontrada:", mejor_estado)
+    # graficar_historial(historial=historial)
+    # graficar_metricas(historial=historial)
+    nombre = f".\\..\\output\\{audio_original.nombre_archivo.split(".")[0]}_{FormatoFechaHora.formatear_fecha_hora(datetime.now(), formato=FormatoFechaHora.Ymd_HMS)}.json"
+    guardar_contenido_json(nombre, historial)
+    return mejor_audio, mejor_puntuaje, mejor_estado, historial
+
+
+
 
 """
 %%%%
@@ -67,9 +148,7 @@ end
 function [ob]=evaluar(sol,dimenciones,a,b,c)
 ob=-a*(exp(-b*sqrt((1/dimenciones)*sum(sol.^2))))-exp((1/dimenciones)*sum(cos(c*sol)))+a+exp(1);
 end
-2 sem
-Responder
-Roman Anselmo Mora Gutierrez
+
 %%%%
 %%%%Asenso_montaña ackley
 %%%
@@ -144,9 +223,6 @@ end
 
 
 if __name__ == '__main__':
-     print("heuristica")
-
-     estado_inicial = {
-         "low_cut"
-     }
+    print("heuristica")
+    ascenso_montania_limpieza_audio()
 

@@ -13,20 +13,21 @@ if __name__ == '__main__':
     audio = Audio(".\\audio\\audio_test.wav")
     audio.leer_audio_librosa(44100, True)
     print(f"El audio fue leido")
+    print(f"Soundrate: {audio.sound_rate}")
     audio.normalizar_audio()
+
 
     print(f"El audio se esta evaluando".center(n_sep, sep))
     print(f"ZCR".center(n_sep_medio, sep))
-    zcr = EvaluarAudio.zero_crosing_rate_mean(audio.audio, audio.rate)
+    zcr = EvaluarAudio.zero_crosing_rate_mean(audio.audio, audio.sound_rate)
     print(zcr)
     print(f"SFM".center(n_sep_medio, sep))
-    sfm = EvaluarAudio.spectral_flatness_mean(audio.audio, audio.rate)
+    sfm = EvaluarAudio.spectral_flatness_mean(audio.audio, audio.sound_rate)
     print(sfm)
     print(f"RMS".center(n_sep_medio, sep))
-    rms = EvaluarAudio.rms_energy_mean(audio.audio, audio.rate)
+    rms = EvaluarAudio.rms_energy_mean(audio.audio, audio.sound_rate)
     print(rms)
     print(f"Ponderacion: {ponderar_calidad(zcr, sfm, rms)}".center(n_sep_75, sep))
-
 
 
 
