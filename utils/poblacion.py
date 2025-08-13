@@ -93,8 +93,15 @@ def cruzar_padres(parent1, parent2, crossover_rate=0.85):
     return child1, child2
 
 
-def generar_nueva_poblacion(seleccionados, num_hijos):
+def generar_nueva_poblacion(seleccionados, fitness, num_hijos, pase_directo = 1):
     nueva_poblacion = []
+
+    emparejados = list(zip(seleccionados, fitness))
+    # Ordenar por mejor puntuación (mayor es mejor)
+    emparejados.sort(key=lambda x: x[1], reverse=True)
+
+    nueva_poblacion = [emparejados[:pase_directo][0][0]]
+    print(nueva_poblacion)
 
     while len(nueva_poblacion) < num_hijos:
         # Selecciona padres aleatoriamente de la lista de seleccionados

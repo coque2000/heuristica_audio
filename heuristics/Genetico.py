@@ -24,14 +24,15 @@ def genetico_limpieza_audio():
     print(f"Soundrate: {audio_original.sound_rate}")
     audio_original.normalizar_audio()
 
-    generaciones_total = 50
+    generaciones_total = 10
     generaciones_local = 10
 
     # Estado inicial
-    tamanio_poblacion = 30
+    tamanio_poblacion = 100
     poblacion = generar_poblacion(tamanio_poblacion)
     cromosaomas = len(poblacion[0])
-    porc_mutacion = 1 / cromosaomas
+    porc_mutacion = (1 / cromosaomas)
+    elitismo = 1
 
     nueva_poblacion = poblacion
     historial = []
@@ -56,7 +57,7 @@ def genetico_limpieza_audio():
 
             fitness.append(evaluacion["puntuacion"])
 
-        mejores = seleccionar_mejores(poblacion, fitness, num_mejores= int(tamanio_poblacion * .10), torneo_size=4)
+        mejores = seleccionar_mejores(nueva_poblacion, fitness, num_mejores= int(tamanio_poblacion * .10), torneo_size=3)
 
         # print(nueva_poblacion)
         indice_mejor = fitness.index(max(fitness))
@@ -72,10 +73,13 @@ def genetico_limpieza_audio():
         })
 
         # Generar nueva poblacion
-        nueva_poblacion = generar_nueva_poblacion(mejores, tamanio_poblacion)
+        nueva_poblacion = generar_nueva_poblacion(mejores, fitness, tamanio_poblacion, pase_directo=elitismo)
+        print(f"len(poblacion): {len(nueva_poblacion)}")
 
         for i_indvividuo in range(len(nueva_poblacion)):
             nueva_poblacion[i_indvividuo] = mutar_individuo(nueva_poblacion[i_indvividuo], prob_mutacion=porc_mutacion)
+
+    print(f"Mejor individuo: {mejor_evaluacion}")
 
     graficar_historial(historial=historial)
     graficar_metricas(historial=historial)
