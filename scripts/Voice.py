@@ -16,4 +16,4 @@ filtered = signal.lfilter(b, a, audio)
 cleaned = nr.reduce_noise(y=filtered, sr=sr)
 
 # 4. Guardar resultado
-sf.write("../audio/limpio.wav", cleaned, sr)
+sf.write("../audio/limpio_0.wav", cleaned, sr)
