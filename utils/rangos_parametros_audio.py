@@ -13,7 +13,7 @@ parametros_audio = {
     },
     "prop_decrease": {
         "inf": 0.05,
-        "sup": 0.25
+        "sup": 0.5  # 0.25
     }
 }
 

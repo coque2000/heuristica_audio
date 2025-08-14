@@ -101,7 +101,7 @@ def generar_nueva_poblacion(seleccionados, fitness, num_hijos, pase_directo = 1)
     emparejados.sort(key=lambda x: x[1], reverse=True)
 
     nueva_poblacion = [emparejados[:pase_directo][0][0]]
-    print(nueva_poblacion)
+    # print(nueva_poblacion)
 
     while len(nueva_poblacion) < num_hijos:
         # Selecciona padres aleatoriamente de la lista de seleccionados
@@ -134,14 +134,16 @@ def mutar_individuo(individuo, prob_mutacion=0.1, rango_mutacion=(-1, 1)):
 
     if type(individuo) == dict:
         for clave in individuo_mutado:
-            if random.random() < prob_mutacion:
-                cambio = random.uniform(rango_mutacion[0], rango_mutacion[1])
-
-                # Si es entero, sumamos cambio redondeado y limitamos
-                if isinstance(individuo_mutado[clave], int):
-                    nuevo_valor = individuo_mutado[clave] + round(cambio)
-                else:
+            if random.random() < prob_mutacion:  # condición normal de mutación
+                if clave == "prop_decrease":
+                    cambio = random.uniform(-0.05, 0.05)
                     nuevo_valor = individuo_mutado[clave] + cambio
+                else:
+                    cambio = random.uniform(rango_mutacion[0], rango_mutacion[1])
+                    if isinstance(individuo_mutado[clave], int):
+                        nuevo_valor = individuo_mutado[clave] + round(cambio)
+                    else:
+                        nuevo_valor = individuo_mutado[clave] + cambio
 
                 # Limitar valor según rango definido
                 inf = parametros_audio[clave]["inf"]
@@ -150,6 +152,7 @@ def mutar_individuo(individuo, prob_mutacion=0.1, rango_mutacion=(-1, 1)):
 
                 # Actualizar valor mutado
                 individuo_mutado[clave] = nuevo_valor
+                print(f"ind[{clave}]: {individuo_mutado[clave]}")
     else:
         for i in range(len(individuo_mutado)):
             if random.random() < prob_mutacion:
