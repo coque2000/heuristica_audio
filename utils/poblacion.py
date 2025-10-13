@@ -152,7 +152,7 @@ def mutar_individuo(individuo, prob_mutacion=0.1, rango_mutacion=(-1, 1)):
 
                 # Actualizar valor mutado
                 individuo_mutado[clave] = nuevo_valor
-                print(f"ind[{clave}]: {individuo_mutado[clave]}")
+                # print(f"ind[{clave}]: {individuo_mutado[clave]}")
     else:
         for i in range(len(individuo_mutado)):
             if random.random() < prob_mutacion:

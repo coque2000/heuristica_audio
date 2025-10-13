@@ -85,6 +85,25 @@ def ponderar_calidad(zcr: float, spectral_flatness: float, rms_energy: float, pr
 
     return round(metrica, precision)
 
+def calcular_fitness(audio: np.ndarray, sound_rate: int) -> dict:
+    evaluacion: dict = {"zcr": zero_crosing_rate_mean(audio, sound_rate),
+                        "flatness": spectral_flatness_mean(audio, sound_rate),
+                        "rms": rms_energy_mean(audio, sound_rate)}
+    evaluacion["puntuacion"] = ponderar_calidad(zcr=evaluacion["zcr"], spectral_flatness=evaluacion["flatness"],
+                                                rms_energy=evaluacion["rms"])
+    return evaluacion
+
+def calcular_fitness_list(audios: list[np.ndarray], sound_rate: int) -> list[dict]:
+    fitness = []
+    for audio in audios:
+        evaluacion: dict = {"zcr": zero_crosing_rate_mean(audio, sound_rate),
+                            "flatness": spectral_flatness_mean(audio, sound_rate),
+                            "rms": rms_energy_mean(audio, sound_rate)}
+        evaluacion["puntuacion"] = ponderar_calidad(zcr=evaluacion["zcr"], spectral_flatness=evaluacion["flatness"], rms_energy=evaluacion["rms"])
+        fitness.append(evaluacion)
+    return fitness
+
+
 def evaluar_lineal(valor: float, minimo: float, maximo: float):
     """
     Evalua linealmente tomando como 0 el valor minimo y 1 el valor maximo

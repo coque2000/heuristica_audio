@@ -84,8 +84,6 @@ def recocido_simulado():
                 rms_energy=evaluacion_vecino["rms"]
             )
 
-
-
             # Diferencia de puntuación respecto al actual
             delta = evaluacion_vecino["puntuacion"] - evaluacion_actual["puntuacion"]
 

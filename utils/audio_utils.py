@@ -1,5 +1,7 @@
+import numpy as np
 import random
 
+from scripts.EvaluarAudio import zero_crosing_rate_mean, spectral_flatness_mean, rms_energy_mean, ponderar_calidad
 from utils.rangos_parametros_audio import parametros_audio
 
 
@@ -22,6 +24,9 @@ def generar_vecino(individuo: dict, desplazamiento: float):
     # Asignar
     vecino[clave] = nuevo_valor
     return vecino
+
+
+
 
 
 
